@@ -62,7 +62,7 @@ was copied and only a small change was made in the file:
 
 ## Installing to the Control Hub
 Once our code is ready in the **TeamCode** folder, we can deploy it to the Control Hub. The 
-instructions (Building and Installing Your Op Mode)[https://ftc-docs.firstinspires.org/en/latest/programming_resources/tutorial_specific/android_studio/creating_op_modes/Creating-and-Running-an-Op-Mode-%28Android-Studio%29.html#building-and-installing-your-op-mode] 
+instructions [Building and Installing Your Op Mode](https://ftc-docs.firstinspires.org/en/latest/programming_resources/tutorial_specific/android_studio/creating_op_modes/Creating-and-Running-an-Op-Mode-%28Android-Studio%29.html#building-and-installing-your-op-mode) 
 detail how to perform this.  In short:
 
 1. Connect the control hub to your computer via USB (USB-C on the Control Hub must be used). 
