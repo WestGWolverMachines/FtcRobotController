@@ -76,7 +76,7 @@ detail how to perform this.  In short:
 
 Our Driver Station was already configured to connect to the Control Hub WIFI network. Assuming you
 have deployed the Application to the Control hub, it is now time to run the application. See
-(Running Your Op Mode)[https://ftc-docs.firstinspires.org/en/latest/programming_resources/tutorial_specific/android_studio/creating_op_modes/Creating-and-Running-an-Op-Mode-%28Android-Studio%29.html#running-your-op-mode] 
+[Running Your Op Mode](https://ftc-docs.firstinspires.org/en/latest/programming_resources/tutorial_specific/android_studio/creating_op_modes/Creating-and-Running-an-Op-Mode-%28Android-Studio%29.html#running-your-op-mode) 
 but basically:
 
 1. Make sure you have the configuration applies (see above (#configuring-hardware])
