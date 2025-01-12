@@ -117,10 +117,10 @@ public class FourWheelDrive extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double leftFrontPower  = (axial + lateral + yaw)/1.5; //change # to increase/decrease max power
+            double rightFrontPower = (axial - lateral - yaw)/1.5;
+            double leftBackPower   = (axial - lateral + yaw)/1.5;
+            double rightBackPower  = (axial + lateral - yaw)/1.5;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
