@@ -73,6 +73,8 @@ public class FourWheelDrive extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
 
+    com.qualcomm.robotcore.hardware.Servo servo_claw;
+
     @Override
     public void runOpMode() {
 
@@ -82,7 +84,7 @@ public class FourWheelDrive extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-        //CHANGED
+        servo_claw = hardwareMap.get(com.qualcomm.robotcore.hardware.Servo.class, "servo_claw");
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -152,13 +154,20 @@ public class FourWheelDrive extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
-            // Send calculated power to wheels
-            // CHANGED
+            // Send calculated power to wheel
             leftFrontDrive.setPower(rightFrontPower);
             rightFrontDrive.setPower(leftFrontPower);
             leftBackDrive.setPower(rightBackPower);
             rightBackDrive.setPower(leftBackPower);
-
+            //degrees=270(position)-135
+            if(gamepad2.x) {
+                // move to 10 degrees.
+                servo_claw.setPosition(.537);
+            } else if (gamepad2.b) {
+                // move to 45 degrees.
+                servo_claw.setPosition(.667);
+            }
+            telemetry.addData("Servo Position", servo_claw.getPosition());
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
