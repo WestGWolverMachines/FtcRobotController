@@ -33,7 +33,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -72,6 +74,8 @@ public class FourWheelDrive extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
+    private DcMotor motor_arm = null;
+
 
     com.qualcomm.robotcore.hardware.Servo servo_claw;
 
@@ -167,6 +171,45 @@ public class FourWheelDrive extends LinearOpMode {
                 // move to 45 degrees.
                 servo_claw.setPosition(.667);
             }
+
+            //ARM CODE
+
+            motor_arm = hardwareMap.get(DcMotor.class, "motor_arm");
+
+            motor_arm.setDirection(DcMotor.Direction.FORWARD);
+
+            // Setup a variable for each drive wheel to save power level for telemetry
+            double motorarmPower = 0;
+
+            // Choose to drive using either Tank Mode, or POV Mode
+            // Comment out the method that's not used.  The default below is POV.
+
+            // POV Mode uses left stick to go forward, and right stick to turn.
+            // - This uses basic math to combine motions and is easier to drive straight.
+//            double up = (-gamepad2.right_stick_y)/3;
+//            double down  =  (gamepad2.right_stick_x)/3;
+
+            if (gamepad2.left_stick_x > 0)
+            {
+                //down power
+                motorarmPower = .1;
+            }
+            else if (gamepad2.left_stick_x < 0)
+            {
+                //up power
+                motorarmPower = -.8;
+            }
+
+//            motorarmPower    = Range.clip(up + down, -1.0, 1.0) ;
+
+            // Tank Mode uses one stick to control each wheel.
+            // - This requires no math, but it is hard to drive forward slowly and keep straight.
+            // leftPower  = -gamepad1.left_stick_y ;
+            // rightPower = -gamepad1.right_stick_y ;
+
+            // Send calculated power to wheels
+            motor_arm.setPower(motorarmPower);
+
             telemetry.addData("Servo Position", servo_claw.getPosition());
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
