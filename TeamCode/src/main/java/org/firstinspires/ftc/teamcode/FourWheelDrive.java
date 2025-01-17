@@ -165,11 +165,11 @@ public class FourWheelDrive extends LinearOpMode {
             rightBackDrive.setPower(leftBackPower);
             //degrees=270(position)-135
             if(gamepad2.x) {
-                // move to 10 degrees.
-                servo_claw.setPosition(.537);
+                // move to 0 degrees. Open
+                servo_claw.setPosition(.5);
             } else if (gamepad2.b) {
-                // move to 45 degrees.
-                servo_claw.setPosition(.667);
+                // move to 25 degrees. Close
+                servo_claw.setPosition(.5926);
             }
 
             //ARM CODE
@@ -189,12 +189,12 @@ public class FourWheelDrive extends LinearOpMode {
 //            double up = (-gamepad2.right_stick_y)/3;
 //            double down  =  (gamepad2.right_stick_x)/3;
 
-            if (gamepad2.left_stick_x > 0)
+            if (gamepad2.left_stick_y > 0)
             {
                 //down power
                 motorarmPower = .1;
             }
-            else if (gamepad2.left_stick_x < 0)
+            else if (gamepad2.left_stick_y < 0)
             {
                 //up power
                 motorarmPower = -.8;
