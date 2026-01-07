@@ -33,7 +33,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -65,31 +64,33 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Launchertest", group="Linear OpMode")
-public class Launchertest extends LinearOpMode {
+@TeleOp(name="KirtlandComp", group="Linear OpMode")
+public class KirtlandComp extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor rightBackDrive = null;
     private DcMotor launcher_right = null;
     private DcMotor launcher_left = null;
     private CRServo top_left = null;
     private CRServo top_right = null;
-    private CRServo bottom_left = null;
-    private CRServo bottom_right = null;
-
-
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         launcher_right  = hardwareMap.get(DcMotor.class, "launcher_right");
         launcher_left  = hardwareMap.get(DcMotor.class, "launcher_left");
         top_left = hardwareMap.get(CRServo.class, "top_left");
         top_right = hardwareMap.get(CRServo.class, "top_right");
-        bottom_left = hardwareMap.get(CRServo.class, "bottom_left");
-        bottom_right = hardwareMap.get(CRServo.class, "bottom_right");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -101,10 +102,12 @@ public class Launchertest extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         launcher_right.setDirection(DcMotor.Direction.FORWARD);
         launcher_left.setDirection(DcMotor.Direction.REVERSE);
-
-
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -115,22 +118,70 @@ public class Launchertest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            double max;
 
-            double launcherpower = gamepad2.right_trigger;
+            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            double lateral =  gamepad1.left_stick_x;
+            double yaw     =  -gamepad1.right_stick_x;
+            boolean slowmode     =  gamepad1.right_bumper; //speed of the robot moving
+
+            double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
+            double rightFrontPower = (axial - lateral - yaw);
+            double leftBackPower = (axial - lateral + yaw);
+            double rightBackPower = (axial + lateral - yaw);
+
+            // Combine the joystick requests for each axis-motion to determine each wheel's power.
+            // Set up a variable for each drive wheel to save the power level for telemetry.
+            if (slowmode) { //if the slower button is pressed
+                leftFrontPower = (axial + lateral + yaw) / 5; //change # to increase/decrease max power
+                rightFrontPower = (axial - lateral - yaw) / 5;
+                leftBackPower = (axial - lateral + yaw) / 5;
+                rightBackPower = (axial + lateral - yaw) / 5;
+            }
+            else {
+                leftFrontPower = (axial + lateral + yaw) / 1.5; //change # to increase/decrease max power
+                rightFrontPower = (axial - lateral - yaw) / 1.5;
+                leftBackPower = (axial - lateral + yaw) / 1.5;
+                rightBackPower = (axial + lateral - yaw) / 1.5;
+            }
+            // Normalize the values so no wheel power exceeds 100%
+            // This ensures that the robot maintains the desired motion.
+            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+            max = Math.max(max, Math.abs(leftBackPower));
+            max = Math.max(max, Math.abs(rightBackPower));
+
+            if (max > 1.0) {
+                leftFrontPower  /= max;
+                rightFrontPower /= max;
+                leftBackPower   /= max;
+                rightBackPower  /= max;
+            }
+// Send calculated power to wheel
+            leftFrontDrive.setPower(rightFrontPower);
+            rightFrontDrive.setPower(leftFrontPower);
+            leftBackDrive.setPower(rightBackPower);
+            rightBackDrive.setPower(leftBackPower);
+
+            // launcher control
+            double launcherpower = gamepad2.right_trigger / 3;
 
 
             launcher_right.setPower(launcherpower);
             launcher_left.setPower(launcherpower);
             top_left.setPower(-gamepad2.left_stick_y);
             top_right.setPower(gamepad2.left_stick_y);
-            bottom_left.setPower(-gamepad2.right_stick_y);
-            bottom_right.setPower(gamepad2.right_stick_y);
 
 
+
+
+//            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Power", launcherpower);
             telemetry.addData("Top Servo", gamepad2.left_stick_y);
-            telemetry.addData("Bottom Servo", gamepad2.right_stick_y);
+            telemetry.addData("slowmode", slowmode);                     ;
             telemetry.update();
         }
     }}
