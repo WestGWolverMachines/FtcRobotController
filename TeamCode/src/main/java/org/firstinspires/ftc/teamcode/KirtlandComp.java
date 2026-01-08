@@ -109,6 +109,11 @@ public class KirtlandComp extends LinearOpMode {
         launcher_right.setDirection(DcMotor.Direction.FORWARD);
         launcher_left.setDirection(DcMotor.Direction.REVERSE);
 
+
+        // set defaut speed for launcher to 100%
+        double launcherspeed = 1;
+
+
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -163,23 +168,36 @@ public class KirtlandComp extends LinearOpMode {
             leftBackDrive.setPower(rightBackPower);
             rightBackDrive.setPower(leftBackPower);
 
-            // launcher control
-            double launcherpower = gamepad2.right_trigger / 3;
+            // launcher speed control
 
+            if(gamepad2.y){
+               launcherspeed = .35;
+            } else if (gamepad2.x) {
+                launcherspeed = .40;
+            } else if (gamepad2.b) {
+                launcherspeed = .30;
+            } else if (gamepad2.a) {
+                launcherspeed = .45;
+            }
 
+            double launcherpower = gamepad2.right_trigger * launcherspeed;
+
+            // send power to launchers
             launcher_right.setPower(launcherpower);
             launcher_left.setPower(launcherpower);
+
+
+
+            // servo laucnher feed
             top_left.setPower(-gamepad2.left_stick_y);
             top_right.setPower(gamepad2.left_stick_y);
-
-
 
 
 //            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Power", launcherpower);
+            telemetry.addData("Launcher", "%4.2f, %4.2f", launcherpower, launcherspeed);
             telemetry.addData("Top Servo", gamepad2.left_stick_y);
             telemetry.addData("slowmode", slowmode);                     ;
             telemetry.update();
