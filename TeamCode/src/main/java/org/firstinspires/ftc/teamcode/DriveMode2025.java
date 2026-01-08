@@ -33,7 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -65,8 +65,8 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="4 Wheel Drive", group="Linear OpMode")
-public class FourWheelDrive extends LinearOpMode {
+@TeleOp(name="DriveMode2025", group="Linear OpMode")
+public class DriveMode2025 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -74,7 +74,7 @@ public class FourWheelDrive extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor motor_arm = null;
+//    private DcMotor motor_arm = null;
 
 
     com.qualcomm.robotcore.hardware.Servo servo_claw;
@@ -88,7 +88,7 @@ public class FourWheelDrive extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-        servo_claw = hardwareMap.get(com.qualcomm.robotcore.hardware.Servo.class, "servo_claw");
+        servo_claw = hardwareMap.get(Servo.class, "servo_claw");
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -119,15 +119,27 @@ public class FourWheelDrive extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  -gamepad1.right_stick_x;
+            boolean slowmode     =  gamepad1.right_bumper; //speed of the robot moving
 
+            double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
+            double rightFrontPower = (axial - lateral - yaw);
+            double leftBackPower = (axial - lateral + yaw);
+            double rightBackPower = (axial + lateral - yaw);
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = (axial + lateral + yaw)/1.5; //change # to increase/decrease max power
-            double rightFrontPower = (axial - lateral - yaw)/1.5;
-            double leftBackPower   = (axial - lateral + yaw)/1.5;
-            double rightBackPower  = (axial + lateral - yaw)/1.5;
-
+            if (slowmode) { //if the slower button is pressed
+                leftFrontPower = (axial + lateral + yaw) / 5; //change # to increase/decrease max power
+                rightFrontPower = (axial - lateral - yaw) / 5;
+                leftBackPower = (axial - lateral + yaw) / 5;
+                rightBackPower = (axial + lateral - yaw) / 5;
+            }
+            else {
+                leftFrontPower = (axial + lateral + yaw) / 1.5; //change # to increase/decrease max power
+                rightFrontPower = (axial - lateral - yaw) / 1.5;
+                leftBackPower = (axial - lateral + yaw) / 1.5;
+                rightBackPower = (axial + lateral - yaw) / 1.5;
+            }
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
@@ -164,22 +176,22 @@ public class FourWheelDrive extends LinearOpMode {
             leftBackDrive.setPower(rightBackPower);
             rightBackDrive.setPower(leftBackPower);
             //degrees=270(position)-135
-            if(gamepad2.x) {
-                // move to 0 degrees. Open
-                servo_claw.setPosition(.5);
-            } else if (gamepad2.b) {
-                // move to 25 degrees. Close
-                servo_claw.setPosition(.5926);
+           if(gamepad1.left_bumper) {
+               //move to 0 degrees. Open
+               servo_claw.setPosition(gamepad1.left_trigger);
+            } else if (gamepad1.b) {
+                //move to 25 degrees. Close
+                servo_claw.setPosition(0);
             }
 
             //ARM CODE
-
-            motor_arm = hardwareMap.get(DcMotor.class, "motor_arm");
-
-            motor_arm.setDirection(DcMotor.Direction.FORWARD);
-
-            // Setup a variable for each drive wheel to save power level for telemetry
-            double motorarmPower = 0;
+//
+//            motor_arm = hardwareMap.get(DcMotor.class, "motor_arm");
+//
+//            motor_arm.setDirection(DcMotor.Direction.FORWARD);
+//
+//            // Setup a variable for each drive wheel to save power level for telemetry
+//            double motorarmPower = 0;
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
@@ -189,16 +201,16 @@ public class FourWheelDrive extends LinearOpMode {
 //            double up = (-gamepad2.right_stick_y)/3;
 //            double down  =  (gamepad2.right_stick_x)/3;
 
-            if (gamepad2.left_stick_y > 0)
-            {
-                //down power
-                motorarmPower = .1;
-            }
-            else if (gamepad2.left_stick_y < 0)
-            {
-                //up power
-                motorarmPower = -.8;
-            }
+//            if (gamepad2.left_stick_y > 0)
+//            {
+//                //down power
+//                motorarmPower = .1;
+//            }
+//            else if (gamepad2.left_stick_y < 0)
+//            {
+//                //up power
+//                motorarmPower = -.8;
+//            }
 
 //            motorarmPower    = Range.clip(up + down, -1.0, 1.0) ;
 
@@ -208,13 +220,14 @@ public class FourWheelDrive extends LinearOpMode {
             // rightPower = -gamepad1.right_stick_y ;
 
             // Send calculated power to wheels
-            motor_arm.setPower(motorarmPower);
+//            motor_arm.setPower(motorarmPower);
 
-            telemetry.addData("Servo Position", servo_claw.getPosition());
-            // Show the elapsed game time and wheel power.
+//            telemetry.addData("Servo Position", servo_claw.getPosition());
+//            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("slowmode", slowmode);                     ;
             telemetry.update();
         }
     }}
