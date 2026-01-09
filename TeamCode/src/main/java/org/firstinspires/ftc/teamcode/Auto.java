@@ -87,7 +87,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Autonomous(name="KirtlandAuto", group = "Linear OpMode", preselectTeleOp = "KirtlandComp")
-//@Disabled //uncomment to disable this OpMode
+@Disabled
 public class Auto extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.

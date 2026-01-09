@@ -73,7 +73,7 @@ import java.util.concurrent.TimeUnit;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="KirtlandComp", group="Linear OpMode")
+@TeleOp(name="KirtlandComp2", group="Linear OpMode")
 public class KirtlandComp2 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
