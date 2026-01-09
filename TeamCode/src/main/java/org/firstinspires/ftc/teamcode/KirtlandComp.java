@@ -112,7 +112,8 @@ public class KirtlandComp extends LinearOpMode {
 
         // set defaut speed for launcher to 100%
         double launcherspeed = 1;
-
+        //set default speed for robot movement
+        double movementspeed = 2;
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -129,27 +130,30 @@ public class KirtlandComp extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  -gamepad1.right_stick_x;
-            boolean slowmode     =  gamepad1.right_bumper; //speed of the robot moving
 
             double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
             double rightFrontPower = (axial - lateral - yaw);
             double leftBackPower = (axial - lateral + yaw);
             double rightBackPower = (axial + lateral - yaw);
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            if (slowmode) { //if the slower button is pressed
-                leftFrontPower = (axial + lateral + yaw) / 5; //change # to increase/decrease max power
-                rightFrontPower = (axial - lateral - yaw) / 5;
-                leftBackPower = (axial - lateral + yaw) / 5;
-                rightBackPower = (axial + lateral - yaw) / 5;
+
+            if(gamepad1.y){
+                movementspeed = 3;
+            } else if (gamepad1.x) {
+                movementspeed = 2.5;
+            } else if (gamepad1.b) {
+                movementspeed = 2;
+            } else if (gamepad1.a) {
+                movementspeed = 1.5;
             }
-            else {
-                leftFrontPower = (axial + lateral + yaw) / 1.5; //change # to increase/decrease max power
-                rightFrontPower = (axial - lateral - yaw) / 1.5;
-                leftBackPower = (axial - lateral + yaw) / 1.5;
-                rightBackPower = (axial + lateral - yaw) / 1.5;
-            }
+
+            leftFrontPower = (axial + lateral + yaw) / movementspeed; //change # to increase/decrease max power
+            rightFrontPower = (axial - lateral - yaw) / movementspeed;
+            leftBackPower = (axial - lateral + yaw) / movementspeed;
+            rightBackPower = (axial + lateral - yaw) / movementspeed;
+
+
+
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
@@ -203,7 +207,7 @@ public class KirtlandComp extends LinearOpMode {
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Launcher", "%4.2f, %4.2f", launcherpower, launcherspeed);
             telemetry.addData("Top Servo", gamepad2.left_stick_y);
-            telemetry.addData("slowmode", slowmode);                     ;
+            telemetry.addData("Speed", movementspeed);                     ;
             telemetry.update();
         }
     }}

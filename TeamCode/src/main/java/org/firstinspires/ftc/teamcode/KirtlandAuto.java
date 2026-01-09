@@ -53,10 +53,10 @@ import java.util.concurrent.TimeUnit;
 public class KirtlandAuto extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 60.0; //  this is how close the camera should get to the target (inches)
     final double Desired_angle = 0; // angle relative to tag Yaw
-    final  double searchpower = .2; // speed at witch it rotates to search for tags
-    final  long searchtime = 10000; // adjust amount of time to spin during search in milliseconds
+    final  double searchpower = .5; // speed at witch it rotates to search for tags
+
 
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
@@ -65,7 +65,7 @@ public class KirtlandAuto extends LinearOpMode
     final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
     final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
     final double TURN_GAIN   =  0.01  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
-    final double launcherspeed = .45;
+    final double launcherspeed = .35;
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
@@ -181,13 +181,24 @@ public class KirtlandAuto extends LinearOpMode
 
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
-            } else {
-                search();
-            }
 
-            // call launch when ready
-            if(desiredTag.ftcPose.range == DESIRED_DISTANCE && desiredTag.ftcPose.yaw == Desired_angle ){
-                launch();
+
+                // call launch when ready
+                if (Math.abs(rangeError) < 2.0 && Math.abs(yawError) < 5.0) {
+                    // Stop motors before launching
+                    moveRobot(0,0,0);
+                    launch();
+                    break;
+                }
+
+
+            } else {
+
+                //search logic
+                drive  = 0;
+                strafe = 0;
+                turn   = searchpower;
+                telemetry.addData("Auto", "Searching...");
             }
 
             telemetry.update();
@@ -298,7 +309,7 @@ public class KirtlandAuto extends LinearOpMode
     private void launch() {
         launcher_right.setPower(1 / launcherspeed);
         launcher_left.setPower(1 / launcherspeed);
-        sleep(5000);
+        sleep(3000);
         top_left.setPower(-1);
         top_right.setPower(1);
         sleep(5000);
@@ -312,18 +323,5 @@ public class KirtlandAuto extends LinearOpMode
         top_right.setPower(0);
         launcher_left.setPower(0);
         launcher_right.setPower(0);
-    }
-
-    private void search() {
-        leftFrontDrive.setPower(-searchpower);
-        rightFrontDrive.setPower(searchpower);
-        leftBackDrive.setPower(-searchpower);
-        rightBackDrive.setPower(searchpower);
-        sleep(searchtime);
-        leftFrontDrive.setPower(0);
-        rightFrontDrive.setPower(0);
-        leftBackDrive.setPower(0);
-        rightBackDrive.setPower(0);
-
     }
 }

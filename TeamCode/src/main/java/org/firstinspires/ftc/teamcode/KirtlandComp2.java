@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
@@ -127,6 +128,9 @@ public class KirtlandComp2 extends LinearOpMode {
         // set defaut speed for launcher to 100%
         double launcherspeed = 1;
 
+        double movementspeed = 2;
+
+
         boolean targetFound = false;    // Set to true when an AprilTag target is detected
         initAprilTag();
         setManualExposure(6, 150);  // Use low exposure time to reduce motion blur
@@ -146,47 +150,15 @@ public class KirtlandComp2 extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  -gamepad1.right_stick_x;
-            boolean slowmode     =  gamepad1.right_bumper; //speed of the robot moving
 
             double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
             double rightFrontPower = (axial - lateral - yaw);
             double leftBackPower = (axial - lateral + yaw);
             double rightBackPower = (axial + lateral - yaw);
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            if (slowmode) { //if the slower button is pressed
-                leftFrontPower = (axial + lateral + yaw) / 5; //change # to increase/decrease max power
-                rightFrontPower = (axial - lateral - yaw) / 5;
-                leftBackPower = (axial - lateral + yaw) / 5;
-                rightBackPower = (axial + lateral - yaw) / 5;
-            }
-            else {
-                leftFrontPower = (axial + lateral + yaw) / 1.5; //change # to increase/decrease max power
-                rightFrontPower = (axial - lateral - yaw) / 1.5;
-                leftBackPower = (axial - lateral + yaw) / 1.5;
-                rightBackPower = (axial + lateral - yaw) / 1.5;
-            }
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
 
-            if (max > 1.0) {
-                leftFrontPower  /= max;
-                rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
-            }
-// Send calculated power to wheel
-            leftFrontDrive.setPower(rightFrontPower);
-            rightFrontDrive.setPower(leftFrontPower);
-            leftBackDrive.setPower(rightBackPower);
-            rightBackDrive.setPower(leftBackPower);
 
-            // launcher speed control
-
+//april tag tracking
             targetFound = false;
             desiredTag  = null;
 
@@ -211,6 +183,55 @@ public class KirtlandComp2 extends LinearOpMode {
                 }
             }
 
+
+            //turns robot to face the tag
+            if(gamepad1.right_bumper && targetFound){
+                yaw = Range.clip(-desiredTag.ftcPose.bearing * 0.01, -0.03, 0.03);
+
+            }
+
+
+
+            if(gamepad1.y){
+                movementspeed = 3;
+            } else if (gamepad1.x) {
+                movementspeed = 2.5;
+            } else if (gamepad1.b) {
+                movementspeed = 2;
+            } else if (gamepad1.a) {
+                movementspeed = 1.5;
+            }
+
+
+
+            leftFrontPower = (axial + lateral + yaw) / movementspeed; //change # to increase/decrease max power
+            rightFrontPower = (axial - lateral - yaw) / movementspeed;
+            leftBackPower = (axial - lateral + yaw) / movementspeed;
+            rightBackPower = (axial + lateral - yaw) / movementspeed;
+
+
+
+            // Normalize the values so no wheel power exceeds 100%
+            // This ensures that the robot maintains the desired motion.
+            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+            max = Math.max(max, Math.abs(leftBackPower));
+            max = Math.max(max, Math.abs(rightBackPower));
+
+            if (max > 1.0) {
+                leftFrontPower  /= max;
+                rightFrontPower /= max;
+                leftBackPower   /= max;
+                rightBackPower  /= max;
+            }
+// Send calculated power to wheel
+            leftFrontDrive.setPower(rightFrontPower);
+            rightFrontDrive.setPower(leftFrontPower);
+            leftBackDrive.setPower(rightBackPower);
+            rightBackDrive.setPower(leftBackPower);
+
+            // launcher speed control
+
+
             if(gamepad2.y){
                launcherspeed = .35;
             } else if (gamepad2.x) {
@@ -220,9 +241,9 @@ public class KirtlandComp2 extends LinearOpMode {
             } else if (gamepad2.a) {
                 launcherspeed = .45;
             }
-            double x = desiredTag.ftcPose.y;
-            if(gamepad2.right_bumper && x > 36){
 
+            if(gamepad2.right_bumper && targetFound){
+                double x = desiredTag.ftcPose.y;
                 launcherpower = (-0.00000474372 * (x * x) + (0.00239988 * x) + 0.217326);
 
             } else {
@@ -248,7 +269,7 @@ public class KirtlandComp2 extends LinearOpMode {
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Launcher", "%4.2f, %4.2f", launcherpower, launcherspeed);
             telemetry.addData("Top Servo", gamepad2.left_stick_y);
-            telemetry.addData("slowmode", slowmode);                     ;
+            telemetry.addData("Speed", movementspeed);                     ;
             telemetry.update();
         }
     }
