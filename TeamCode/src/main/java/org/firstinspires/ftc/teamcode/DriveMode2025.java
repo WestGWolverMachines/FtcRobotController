@@ -66,6 +66,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 @TeleOp(name="DriveMode2025", group="Linear OpMode")
+@Disabled
 public class DriveMode2025 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.

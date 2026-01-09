@@ -32,12 +32,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
@@ -48,15 +46,53 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/*
+ * This OpMode illustrates using a camera to locate and drive towards a specific AprilTag.
+ * The code assumes a Holonomic (Mecanum or X Drive) Robot.
+ *
+ * For an introduction to AprilTags, see the ftc-docs link below:
+ * https://ftc-docs.firstinspires.org/en/latest/apriltag/vision_portal/apriltag_intro/apriltag-intro.html
+ *
+ * When an AprilTag in the TagLibrary is detected, the SDK provides location and orientation of the tag, relative to the camera.
+ * This information is provided in the "ftcPose" member of the returned "detection", and is explained in the ftc-docs page linked below.
+ * https://ftc-docs.firstinspires.org/apriltag-detection-values
+ *
+ * The drive goal is to rotate to keep the Tag centered in the camera, while strafing to be directly in front of the tag, and
+ * driving towards the tag to achieve the desired distance.
+ * To reduce any motion blur (which will interrupt the detection process) the Camera exposure is reduced to a very low value (5mS)
+ * You can determine the best Exposure and Gain values by using the ConceptAprilTagOptimizeExposure OpMode in this Samples folder.
+ *
+ * The code assumes a Robot Configuration with motors named: leftfront_drive and rightfront_drive, leftback_drive and rightback_drive.
+ * The motor directions must be set so a positive power goes forward on all wheels.
+ * This sample assumes that the current game AprilTag Library (usually for the current season) is being loaded by default,
+ * so you should choose to approach a valid tag ID.
+ *
+ * Under manual control, the left stick will move forward/back & left/right.  The right stick will rotate the robot.
+ * Manually drive the robot until it displays Target data on the Driver Station.
+ *
+ * Press and hold the *Left Bumper* to enable the automatic "Drive to target" mode.
+ * Release the Left Bumper to return to manual driving mode.
+ *
+ * Under "Drive To Target" mode, the robot has three goals:
+ * 1) Turn the robot to always keep the Tag centered on the camera frame. (Use the Target Bearing to turn the robot.)
+ * 2) Strafe the robot towards the centerline of the Tag, so it approaches directly in front  of the tag.  (Use the Target Yaw to strafe the robot)
+ * 3) Drive towards the Tag to get to the desired distance.  (Use Tag Range to drive the robot forward/backward)
+ *
+ * Use DESIRED_DISTANCE to set how close you want the robot to get to the target.
+ * Speed and Turn sensitivity can be adjusted using the SPEED_GAIN, STRAFE_GAIN and TURN_GAIN constants.
+ *
+ * Use Android Studio to Copy this Class, and Paste it into the TeamCode/src/main/java/org/firstinspires/ftc/teamcode folder.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
+ *
+ */
 
 @Autonomous(name="KirtlandAuto", group = "Linear OpMode", preselectTeleOp = "KirtlandComp")
-public class KirtlandAuto extends LinearOpMode
+//@Disabled //uncomment to disable this OpMode
+public class Auto extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
     final double Desired_angle = 0; // angle relative to tag Yaw
-    final  double searchpower = .2; // speed at witch it rotates to search for tags
-    final  long searchtime = 10000; // adjust amount of time to spin during search in milliseconds
 
 
     //  Set the GAIN constants to control the relationship between the measured position error, and how much power is
@@ -158,16 +194,19 @@ public class KirtlandAuto extends LinearOpMode
 
             // Tell the driver what we see, and what to do.
             if (targetFound) {
-                telemetry.addData("\n>", "HOLD Left-Bumper to Drive to Target\n");
+                telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
-                telemetry.addData("Range", "%5.2f inches", desiredTag.ftcPose.range);
-                telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
-                telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
-                telemetry.addData("xaxis", "%5.2f inches", desiredTag.ftcPose.x);
-                telemetry.addData("yaxis", "%5.2f inches", desiredTag.ftcPose.y);
+                telemetry.addData("Range",  "%5.2f inches", desiredTag.ftcPose.range);
+                telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
+                telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
+                telemetry.addData("xaxis","%5.2f inches", desiredTag.ftcPose.x);
+                telemetry.addData("yaxis","%5.2f inches", desiredTag.ftcPose.y);
+            } else {
+                telemetry.addData("\n>","Drive using joysticks to find valid target\n");
             }
-            // If we have found the desired target, Drive to target Automatically .
-            if (targetFound) {
+
+            // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
+            if (gamepad1.left_bumper && targetFound) {
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
@@ -182,11 +221,16 @@ public class KirtlandAuto extends LinearOpMode
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             } else {
-                search();
+
+                // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
+                drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
+                strafe = -gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
+                turn   = -gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
+                telemetry.addData("Manual","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
             }
 
             // call launch when ready
-            if(desiredTag.ftcPose.range == DESIRED_DISTANCE && desiredTag.ftcPose.yaw == Desired_angle ){
+            if(desiredTag.ftcPose.range == DESIRED_DISTANCE && desiredTag.ftcPose.yaw == Desired_angle){
                 launch();
             }
 
@@ -261,7 +305,7 @@ public class KirtlandAuto extends LinearOpMode
      Manually set the camera gain and exposure.
      This can only be called AFTER calling initAprilTag(), and only works for Webcams;
     */
-    private void setManualExposure(int exposureMS, int gain) {
+    private void    setManualExposure(int exposureMS, int gain) {
         // Wait for the camera to be open, then use the controls
 
         if (visionPortal == null) {
@@ -312,18 +356,5 @@ public class KirtlandAuto extends LinearOpMode
         top_right.setPower(0);
         launcher_left.setPower(0);
         launcher_right.setPower(0);
-    }
-
-    private void search() {
-        leftFrontDrive.setPower(-searchpower);
-        rightFrontDrive.setPower(searchpower);
-        leftBackDrive.setPower(-searchpower);
-        rightBackDrive.setPower(searchpower);
-        sleep(searchtime);
-        leftFrontDrive.setPower(0);
-        rightFrontDrive.setPower(0);
-        leftBackDrive.setPower(0);
-        rightBackDrive.setPower(0);
-
     }
 }

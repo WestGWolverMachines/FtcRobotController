@@ -33,8 +33,17 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -65,7 +74,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="KirtlandComp", group="Linear OpMode")
-public class KirtlandComp extends LinearOpMode {
+public class KirtlandComp2 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -77,6 +86,11 @@ public class KirtlandComp extends LinearOpMode {
     private DcMotor launcher_left = null;
     private CRServo top_left = null;
     private CRServo top_right = null;
+
+    private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
+    private VisionPortal visionPortal;               // Used to manage the video source.
+    private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
+    private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
 
     @Override
     public void runOpMode() {
@@ -113,6 +127,9 @@ public class KirtlandComp extends LinearOpMode {
         // set defaut speed for launcher to 100%
         double launcherspeed = 1;
 
+        boolean targetFound = false;    // Set to true when an AprilTag target is detected
+        initAprilTag();
+        setManualExposure(6, 150);  // Use low exposure time to reduce motion blur
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -124,7 +141,7 @@ public class KirtlandComp extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
-
+            double launcherpower = 0;
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
@@ -170,6 +187,30 @@ public class KirtlandComp extends LinearOpMode {
 
             // launcher speed control
 
+            targetFound = false;
+            desiredTag  = null;
+
+            // Step through the list of detected tags and look for a matching tag
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            for (AprilTagDetection detection : currentDetections) {
+                // Look to see if we have size info on this tag.
+                if (detection.metadata != null) {
+                    //  Check to see if we want to track towards this tag.
+                    if ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID)) {
+                        // Yes, we want to use this tag.
+                        targetFound = true;
+                        desiredTag = detection;
+                        break;  // don't look any further.
+                    } else {
+                        // This tag is in the library, but we do not want to track it right now.
+                        telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
+                    }
+                } else {
+                    // This tag is NOT in the library, so we don't have enough information to track to it.
+                    telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+                }
+            }
+
             if(gamepad2.y){
                launcherspeed = .35;
             } else if (gamepad2.x) {
@@ -179,10 +220,14 @@ public class KirtlandComp extends LinearOpMode {
             } else if (gamepad2.a) {
                 launcherspeed = .45;
             }
+            double x = desiredTag.ftcPose.y;
+            if(gamepad2.right_bumper && x > 36){
 
+                launcherpower = (-0.00000474372 * (x * x) + (0.00239988 * x) + 0.217326);
 
-            double launcherpower = gamepad2.right_trigger * launcherspeed;
-
+            } else {
+                launcherpower = gamepad2.right_trigger * launcherspeed;
+            }
 
 
 
@@ -206,4 +251,63 @@ public class KirtlandComp extends LinearOpMode {
             telemetry.addData("slowmode", slowmode);                     ;
             telemetry.update();
         }
-    }}
+    }
+    private void initAprilTag() {
+        // Create the AprilTag processor by using a builder.
+        aprilTag = new AprilTagProcessor.Builder().build();
+
+        // Adjust Image Decimation to trade-off detection-range for detection-rate.
+        // e.g. Some typical detection data using a Logitech C920 WebCam
+        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
+        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
+        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second
+        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second
+        // Note: Decimation can be changed on-the-fly to adapt during a match.
+        aprilTag.setDecimation(5);
+
+        // Create the vision portal by using a builder.
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .addProcessor(aprilTag)
+                .build();
+
+    }
+
+    /*
+     Manually set the camera gain and exposure.
+     This can only be called AFTER calling initAprilTag(), and only works for Webcams;
+    */
+    private void    setManualExposure(int exposureMS, int gain) {
+        // Wait for the camera to be open, then use the controls
+
+        if (visionPortal == null) {
+            return;
+        }
+
+        // Make sure camera is streaming before we try to set the exposure controls
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting");
+            telemetry.update();
+            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+
+        // Set camera controls unless we are stopping.
+        if (!isStopRequested())
+        {
+            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+                exposureControl.setMode(ExposureControl.Mode.Manual);
+                sleep(50);
+            }
+            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
+            sleep(20);
+            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+            gainControl.setGain(gain);
+            sleep(20);
+        }
+    }
+}
