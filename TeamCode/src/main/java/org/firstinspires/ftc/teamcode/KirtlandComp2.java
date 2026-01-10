@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -75,6 +76,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @TeleOp(name="KirtlandComp2", group="Linear OpMode")
+@Disabled
 public class KirtlandComp2 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -148,7 +150,7 @@ public class KirtlandComp2 extends LinearOpMode {
             double launcherpower = 0;
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
+            double lateral =  -gamepad1.left_stick_x;
             double yaw     =  -gamepad1.right_stick_x;
 
             double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
@@ -233,13 +235,13 @@ public class KirtlandComp2 extends LinearOpMode {
 
 
             if(gamepad2.y){
-               launcherspeed = .35;
+               launcherspeed = .30;
             } else if (gamepad2.x) {
-                launcherspeed = .40;
+                launcherspeed = .35;
             } else if (gamepad2.b) {
-                launcherspeed = .30;
+                launcherspeed = .25;
             } else if (gamepad2.a) {
-                launcherspeed = .45;
+                launcherspeed = .40;
             }
 
             if(gamepad2.right_bumper && targetFound){

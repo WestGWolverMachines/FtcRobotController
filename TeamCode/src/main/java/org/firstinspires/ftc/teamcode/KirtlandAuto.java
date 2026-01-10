@@ -50,12 +50,13 @@ import java.util.concurrent.TimeUnit;
 
 
 @Autonomous(name="KirtlandAuto", group = "Linear OpMode", preselectTeleOp = "KirtlandComp")
+@Disabled
 public class KirtlandAuto extends LinearOpMode
 {
     // Adjust these numbers to suit your robot.
-    final double DESIRED_DISTANCE = 60.0; //  this is how close the camera should get to the target (inches)
+    final double DESIRED_DISTANCE = 84.0; //  this is how close the camera should get to the target (inches)
     final double Desired_angle = 0; // angle relative to tag Yaw
-    final  double searchpower = .5; // speed at witch it rotates to search for tags
+    final  double searchpower = .3; // speed at witch it rotates to search for tags
 
 
 
@@ -79,7 +80,7 @@ public class KirtlandAuto extends LinearOpMode
     private CRServo top_left = null;
     private CRServo top_right = null;
 
-    private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
+    private static final int DESIRED_TAG_ID = 20;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
@@ -177,14 +178,14 @@ public class KirtlandAuto extends LinearOpMode
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
                 turn   = Range.clip(-yawError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
-                strafe = Range.clip(-xaxisError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+                strafe = Range.clip(xaxisError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
 
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
 
 
                 // call launch when ready
-                if (Math.abs(rangeError) < 2.0 && Math.abs(yawError) < 5.0) {
+                if (Math.abs(rangeError) < 2.0 && Math.abs(yawError) < 2.0) {
                     // Stop motors before launching
                     moveRobot(0,0,0);
                     launch();

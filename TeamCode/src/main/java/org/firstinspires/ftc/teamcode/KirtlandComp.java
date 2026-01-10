@@ -128,7 +128,7 @@ public class KirtlandComp extends LinearOpMode {
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
+            double lateral =  -gamepad1.left_stick_x;
             double yaw     =  -gamepad1.right_stick_x;
 
             double leftFrontPower = (axial + lateral + yaw); //change # to increase/decrease max power
@@ -175,13 +175,13 @@ public class KirtlandComp extends LinearOpMode {
             // launcher speed control
 
             if(gamepad2.y){
-               launcherspeed = .35;
+               launcherspeed = .30;
             } else if (gamepad2.x) {
-                launcherspeed = .40;
+                launcherspeed = .35;
             } else if (gamepad2.b) {
-                launcherspeed = .30;
+                launcherspeed = .27;
             } else if (gamepad2.a) {
-                launcherspeed = .45;
+                launcherspeed = .42;
             }
 
 
