@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp(name="DecodeTeleOp", group="Decode Challenge")
+
 public class DecodeTeleOp extends LinearOpMode {
 
     // Hardware
@@ -69,7 +71,7 @@ public class DecodeTeleOp extends LinearOpMode {
 
     // Launcher Constants
     private static final double TICKS_PER_REV = 28.0;
-    private static final double MAX_RPM = 6000.0;
+    private static final double MAX_RPM = 3500.0;
     
     // RPM Presets
     private static final double RPM_PRESET_A = 2100.0;
@@ -226,7 +228,7 @@ public class DecodeTeleOp extends LinearOpMode {
             
             if (triggerValue > 0.1) {
 
-                targetVelocity = (launcherRPM / 60.0) * TICKS_PER_REV * triggerValue;
+                targetVelocity = (launcherRPM / 60.0) * TICKS_PER_REV;
                 launcherRight.setVelocity(targetVelocity);
                 launcherLeft.setVelocity(targetVelocity);
             } else {
@@ -249,6 +251,7 @@ public class DecodeTeleOp extends LinearOpMode {
             telemetry.addData("Drive Speed", "1/%.1f", movementSpeedDivisor);
             telemetry.addLine();
             telemetry.addData("Target RPM", "%.0f", launcherRPM);
+            telemetry.addData("Targeting RPM", "%4f", targetVelocity);
             telemetry.addData("Actual RPM", "L:%.0f R:%.0f", actualRPMLeft, actualRPMRight);
             telemetry.addData("Trigger", "%.2f", triggerValue);
             telemetry.addLine();

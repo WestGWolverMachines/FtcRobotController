@@ -169,11 +169,11 @@ public class goalauto extends LinearOpMode
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-
+                double yaw = (desiredTag.ftcPose.yaw);
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-
+                turn  = Range.clip(-yaw * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
 
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
@@ -303,8 +303,8 @@ public class goalauto extends LinearOpMode
     }
 
     private void launch() {
-        launcher_right.setPower(.35);
-        launcher_left.setPower(.35);
+        launcher_right.setPower(.30);
+        launcher_left.setPower(.30);
         sleep(1500);
         top_left.setPower(-1);
         top_right.setPower(1);

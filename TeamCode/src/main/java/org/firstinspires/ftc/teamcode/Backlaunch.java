@@ -40,7 +40,7 @@ public class Backlaunch extends LinearOpMode
 {
 
 
-    final  double launchspeed = .33;
+    final  double launchspeed = .42;
     private DcMotor leftFrontDrive   = null;  //  Used to control the left front drive wheel
     private DcMotor rightFrontDrive  = null;  //  Used to control the right front drive wheel
     private DcMotor leftBackDrive    = null;  //  Used to control the left back drive wheel

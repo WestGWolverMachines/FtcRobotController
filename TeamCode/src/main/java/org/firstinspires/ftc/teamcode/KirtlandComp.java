@@ -174,14 +174,14 @@ public class KirtlandComp extends LinearOpMode {
 
             // launcher speed control
 
-            if(gamepad2.y){
-               launcherspeed = .30;
-            } else if (gamepad2.x) {
+            if(gamepad2.b){
+               launcherspeed = .3;
+            } else if (gamepad2.y) {
                 launcherspeed = .35;
-            } else if (gamepad2.b) {
-                launcherspeed = .27;
+            } else if (gamepad2.x) {
+                launcherspeed = .38;
             } else if (gamepad2.a) {
-                launcherspeed = .42;
+                launcherspeed = .47;
             }
 
 

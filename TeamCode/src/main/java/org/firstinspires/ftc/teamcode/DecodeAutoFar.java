@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -37,6 +38,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="DecodeAutoFar", group="Decode Challenge", preselectTeleOp="DecodeTeleOp")
+@Disabled
 public class DecodeAutoFar extends LinearOpMode {
 
    
@@ -57,7 +59,7 @@ public class DecodeAutoFar extends LinearOpMode {
     private static final int MAX_LAUNCH_WAIT_MS = 5000;
     
     /** Distance to drive forward after launching (inches) */
-    private static final double DRIVE_FORWARD_INCHES = 48.0;
+    private static final double DRIVE_FORWARD_INCHES = 18.0;
     
     //Drive speed during forward movement (0-1)
     private static final double DRIVE_SPEED = 0.4;
