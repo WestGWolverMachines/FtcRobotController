@@ -56,15 +56,12 @@ public class DebugLaunchEncoders extends LinearOpMode {
     private DcMotorEx launcherRight = null;
     private DcMotorEx launcherLeft = null;
 
-    // Launcher Constants
-    private static final double TICKS_PER_REV = 28.0;
-    
     // RPM Presets
     private static final double RPM_PRESET_A = 2100.0;
     private static final double RPM_PRESET_B = 2400.0;
     private static final double RPM_PRESET_X = 2700.0;
     private static final double RPM_PRESET_Y = 3000.0;
-    private double targetRPM = 2400.0;  // Default target
+    private double targetRPM = RPM_PRESET_B;  // Default target
 
     @Override
     public void runOpMode() {
@@ -78,7 +75,9 @@ public class DebugLaunchEncoders extends LinearOpMode {
 
         // Configure launcher motors for velocity control using encoders
         launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launcherLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Target RPM", targetRPM);
@@ -103,29 +102,47 @@ public class DebugLaunchEncoders extends LinearOpMode {
             // save the trigger as a bool, so we know f it is on / off more easily.
             // if it is != 0 (it is a float)
             boolean launchTrigger = gamepad2.right_trigger != 0.0f;
-            double targetVelocity = 0;
-            
+            double targetRadPerSec = 0;
+
+            // setVelocity is radians / second
             if (launchTrigger) {
-                targetVelocity = (targetRPM / 60.0) * TICKS_PER_REV;
-                launcherRight.setVelocity(targetVelocity);
-                launcherLeft.setVelocity(targetVelocity);
+
+                // OLD CODE
+                // targetVelocity = (targetRPM / 60.0) * TICKS_PER_REV;
+
+                // Formula to get radians / sec id => Target RPM * (2 PI / 60 )
+                targetRadPerSec = targetRPM * 2.0 * Math.PI / 60.0;
+
+                launcherRight.setVelocity(targetRadPerSec);
+                launcherLeft.setVelocity(targetRadPerSec);
             } else {
                 launcherRight.setVelocity(0);
                 launcherLeft.setVelocity(0);
             }
 
             // Get actual velocity for telemetry
-            double actualVelocityRight = launcherRight.getVelocity();
-            double actualVelocityLeft = launcherLeft.getVelocity();
-            double actualRPMRight = (actualVelocityRight / TICKS_PER_REV) * 60.0;
-            double actualRPMLeft = (actualVelocityLeft / TICKS_PER_REV) * 60.0;
+            // getVelocity is radians / second
+            double actualRadPerSecRight = launcherRight.getVelocity();
+            double actuaRadPerSecLeft = launcherLeft.getVelocity();
+
+            // OLD CODE
+            // double actualRPMRight = (actualVelocityRight / TICKS_PER_REV) * 60.0;
+            // double actualRPMLeft = (actualVelocityLeft / TICKS_PER_REV) * 60.0;
+
+            double actualRPMRight = actualRadPerSecRight * 60.0 / ( 2 * Math.PI );
+            double actualRPMLeft = actuaRadPerSecLeft * 60.0 / ( 2 * Math.PI );
 
             //Telemetry
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addLine();
-            telemetry.addData("Target RPM", "%.0f", targetRPM);
-            telemetry.addData("Targeting RPM", "%4f", targetVelocity);
-            telemetry.addData("Actual RPM", "L:%.0f R:%.0f", actualRPMLeft, actualRPMRight);
+            telemetry.addData("Target RPM", targetRPM);
+            telemetry.addData("Actual RPM Right", actualRPMRight);
+            telemetry.addData("Actual RPM Left ", actualRPMLeft);
+            telemetry.addLine();
+            telemetry.addData("Target Rad/Sec", targetRadPerSec);
+            telemetry.addData("Actual Rad/Sec Right", actualRadPerSecRight);
+            telemetry.addData("Actual Rad/Sec Left ", actuaRadPerSecLeft);
+            telemetry.addLine();
             telemetry.addData("Trigger", "%b", launchTrigger);
             telemetry.addLine();
 
