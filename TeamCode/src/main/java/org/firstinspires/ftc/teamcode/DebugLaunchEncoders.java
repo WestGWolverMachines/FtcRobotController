@@ -70,14 +70,25 @@ public class DebugLaunchEncoders extends LinearOpMode {
         launcherRight = hardwareMap.get(DcMotorEx.class, "launcher_right");
         launcherLeft = hardwareMap.get(DcMotorEx.class, "launcher_left");
 
-        launcherRight.setDirection(DcMotor.Direction.FORWARD);
-        launcherLeft.setDirection(DcMotor.Direction.REVERSE);
-
         // Configure launcher motors for velocity control using encoders
+        launcherRight.setDirection(DcMotor.Direction.FORWARD);
+        launcherRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcherRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // to configure. set P = 0, then run and see if target ~= actual.  increase or decrease f
+        // to get them to be close. Then set P = 5 to start and add as needed. P is what keeps it
+        // at speed (after launching) and ramp up time.
+        launcherRight.setVelocityPIDFCoefficients(.5,0.0,0.0,18.3);
+
+        launcherLeft.setDirection(DcMotor.Direction.FORWARD);
+        launcherLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcherLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // may be configured differently based on internal resistance or weight or other factors.
+        // fining this needs a bit less f
+        launcherLeft.setVelocityPIDFCoefficients(.5,0.0,0.0,18.0);
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Target RPM", targetRPM);
@@ -110,11 +121,11 @@ public class DebugLaunchEncoders extends LinearOpMode {
                 // OLD CODE
                 // targetVelocity = (targetRPM / 60.0) * TICKS_PER_REV;
 
-                // Formula to get radians / sec id => Target RPM * (2 PI / 60 )
+                // Formula to get radians per sec is => Target RPM * (2 PI / 60 )
                 targetRadPerSec = targetRPM * 2.0 * Math.PI / 60.0;
 
                 launcherRight.setVelocity(targetRadPerSec);
-                launcherLeft.setVelocity(targetRadPerSec);
+                launcherLeft.setVelocity(-targetRadPerSec);
             } else {
                 launcherRight.setVelocity(0);
                 launcherLeft.setVelocity(0);
@@ -123,14 +134,16 @@ public class DebugLaunchEncoders extends LinearOpMode {
             // Get actual velocity for telemetry
             // getVelocity is radians / second
             double actualRadPerSecRight = launcherRight.getVelocity();
-            double actuaRadPerSecLeft = launcherLeft.getVelocity();
+            double actualRadPerSecLeft = launcherLeft.getVelocity();
 
             // OLD CODE
             // double actualRPMRight = (actualVelocityRight / TICKS_PER_REV) * 60.0;
             // double actualRPMLeft = (actualVelocityLeft / TICKS_PER_REV) * 60.0;
 
+            // opposite formula to get back
+            // Formula to get RPM => rad per sec * 60 / (2 PI)
             double actualRPMRight = actualRadPerSecRight * 60.0 / ( 2 * Math.PI );
-            double actualRPMLeft = actuaRadPerSecLeft * 60.0 / ( 2 * Math.PI );
+            double actualRPMLeft = actualRadPerSecLeft * 60.0 / ( 2 * Math.PI );
 
             //Telemetry
             telemetry.addData("Status", "Run Time: " + runtime.toString());
@@ -141,7 +154,7 @@ public class DebugLaunchEncoders extends LinearOpMode {
             telemetry.addLine();
             telemetry.addData("Target Rad/Sec", targetRadPerSec);
             telemetry.addData("Actual Rad/Sec Right", actualRadPerSecRight);
-            telemetry.addData("Actual Rad/Sec Left ", actuaRadPerSecLeft);
+            telemetry.addData("Actual Rad/Sec Left ", actualRadPerSecLeft);
             telemetry.addLine();
             telemetry.addData("Trigger", "%b", launchTrigger);
             telemetry.addLine();
