@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 
 @Autonomous(name="backlaunch", group = "Linear OpMode", preselectTeleOp = "KirtlandComp")
@@ -45,8 +46,8 @@ public class Backlaunch extends LinearOpMode
     private DcMotor rightFrontDrive  = null;  //  Used to control the right front drive wheel
     private DcMotor leftBackDrive    = null;  //  Used to control the left back drive wheel
     private DcMotor rightBackDrive   = null;  //  Used to control the right back drive wheel
-    private DcMotor launcher_right = null;
-    private DcMotor launcher_left = null;
+    private DcMotorEx launcherRight = null;
+    private DcMotorEx launcherLeft = null;
     private CRServo top_left = null;
     private CRServo top_right = null;
 
@@ -62,8 +63,8 @@ public class Backlaunch extends LinearOpMode
         leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-        launcher_right  = hardwareMap.get(DcMotor.class, "launcher_right");
-        launcher_left  = hardwareMap.get(DcMotor.class, "launcher_left");
+        launcherRight  = hardwareMap.get(DcMotorEx.class, "launcher_right");
+        launcherLeft  = hardwareMap.get(DcMotorEx.class, "launcher_left");
         top_left = hardwareMap.get(CRServo.class, "top_left");
         top_right = hardwareMap.get(CRServo.class, "top_right");
 
@@ -75,10 +76,26 @@ public class Backlaunch extends LinearOpMode
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        launcher_right.setDirection(DcMotor.Direction.FORWARD);
-        launcher_left.setDirection(DcMotor.Direction.REVERSE);
 
+        // Configure launcher motors for velocity control using encoders
+        launcherRight.setDirection(DcMotor.Direction.FORWARD);
+        launcherRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // to configure. set P = 0, then run and see if target ~= actual.  increase or decrease f
+        // to get them to be close. Then set P = 5 to start and add as needed. P is what keeps it
+        // at speed (after launching) and ramp up time.
+        launcherRight.setVelocityPIDFCoefficients(.5,0.0,0.0,18.3);
+
+        launcherLeft.setDirection(DcMotor.Direction.FORWARD);
+        launcherLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcherLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // may be configured differently based on internal resistance or weight or other factors.
+        // fining this needs a bit less f
+        launcherLeft.setVelocityPIDFCoefficients(.5,0.0,0.0,19.5);
         waitForStart();
 
         while (opModeIsActive())
@@ -134,22 +151,26 @@ public class Backlaunch extends LinearOpMode
 
 
     private void launch() {
-        launcher_right.setPower(launchspeed);
-        launcher_left.setPower(launchspeed);
-        sleep(3000);
+        launcherRight.setVelocity(628);
+        launcherLeft.setVelocity(-628);
+        sleep(1000);
         top_left.setPower(-1);
         top_right.setPower(1);
-        sleep(5000);
+        sleep(3000);
         top_left.setPower(0);
         top_right.setPower(0);
-        sleep(3000);
+        sleep(500);
         top_left.setPower(-1);
         top_right.setPower(1);
-        sleep(5000);
+        sleep(3000);
         top_left.setPower(0);
         top_right.setPower(0);
-        launcher_left.setPower(0);
-        launcher_right.setPower(0);
+        sleep(500);
+        top_left.setPower(-1);
+        top_right.setPower(1);
+        sleep(3000);
+        launcherLeft.setPower(0);
+        launcherRight.setPower(0);
     }
     /**
      * Initialize the AprilTag processor.
