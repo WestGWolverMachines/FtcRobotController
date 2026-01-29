@@ -173,7 +173,7 @@ public class goalauto extends LinearOpMode
 
                 // Use the speed and turn "gains" to calculate how we want the robot to move.
                 drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-                turn  = Range.clip(-yaw * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                turn  = Range.clip(yaw * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
 
 
                 telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);

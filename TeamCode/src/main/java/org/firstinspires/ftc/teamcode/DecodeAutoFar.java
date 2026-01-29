@@ -38,13 +38,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="DecodeAutoFar", group="Decode Challenge", preselectTeleOp="DecodeTeleOp")
-@Disabled
 public class DecodeAutoFar extends LinearOpMode {
 
    
     
     //Number of balls to launch
-    private static final int BALL_COUNT = 2;
+    private static final int BALL_COUNT = 3;
     
     //Target launcher RPM for far launch
     private static final double TARGET_RPM = 3000.0;
