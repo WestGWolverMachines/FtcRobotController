@@ -57,10 +57,10 @@ public class DebugLaunchEncoders extends LinearOpMode {
     private DcMotorEx launcherLeft = null;
 
     // RPM Presets
-    private static final double RPM_PRESET_A = 2100.0;
-    private static final double RPM_PRESET_B = 2400.0;
-    private static final double RPM_PRESET_X = 2700.0;
-    private static final double RPM_PRESET_Y = 3000.0;
+    private static final double RPM_PRESET_A = 3700.0;
+    private static final double RPM_PRESET_B = 4200.0;
+    private static final double RPM_PRESET_X = 4500.0;
+    private static final double RPM_PRESET_Y = 5000.0;
     private double targetRPM = RPM_PRESET_B;  // Default target
 
     @Override
@@ -88,7 +88,7 @@ public class DebugLaunchEncoders extends LinearOpMode {
 
         // may be configured differently based on internal resistance or weight or other factors.
         // fining this needs a bit less f
-        launcherLeft.setVelocityPIDFCoefficients(.5,0.0,0.0,18.0);
+        launcherLeft.setVelocityPIDFCoefficients(.5,0.0,0.0,19.5);
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Target RPM", targetRPM);
