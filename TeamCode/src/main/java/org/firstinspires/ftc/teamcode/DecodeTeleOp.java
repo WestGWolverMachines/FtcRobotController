@@ -71,17 +71,17 @@ public class DecodeTeleOp extends LinearOpMode {
 
     // Launcher Constants
     private static final double TICKS_PER_REV = 28.0;
-    private static final double MAX_RPM = 3500.0;
+    private static final double MAX_RPM = 10000;
     
     // RPM Presets
-    private static final double RPM_PRESET_A = 2100.0;
-    private static final double RPM_PRESET_B = 2400.0;
-    private static final double RPM_PRESET_X = 2700.0;
-    private static final double RPM_PRESET_Y = 3000.0;
+    private static final double RPM_PRESET_A = 4200;
+    private static final double RPM_PRESET_B = 4500;
+    private static final double RPM_PRESET_X = 5500;
+    private static final double RPM_PRESET_Y = 6000;
     private static final double RPM_ADJUST_STEP = 50.0;  // D-pad adjustment
 
     // State
-    private double targetRPM = 2400.0;  // Default target
+    private double targetRPM = 1000;  // Default target
     private double movementSpeedDivisor = 2.0;  // Drive speed divisor
     private boolean dpadUpPressed = false;
     private boolean dpadDownPressed = false;
@@ -107,12 +107,25 @@ public class DecodeTeleOp extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        launcherRight.setDirection(DcMotor.Direction.FORWARD);
-        launcherLeft.setDirection(DcMotor.Direction.REVERSE);
-
         // Configure launcher motors for velocity control using encoders
+        launcherRight.setDirection(DcMotor.Direction.FORWARD);
+        launcherRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // to configure. set P = 0, then run and see if target ~= actual.  increase or decrease f
+        // to get them to be close. Then set P = 5 to start and add as needed. P is what keeps it
+        // at speed (after launching) and ramp up time.
+        launcherRight.setVelocityPIDFCoefficients(.5,0.0,0.0,18.3);
+
+        launcherLeft.setDirection(DcMotor.Direction.FORWARD);
+        launcherLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcherLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcherLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // may be configured differently based on internal resistance or weight or other factors.
+        // fining this needs a bit less f
+        launcherLeft.setVelocityPIDFCoefficients(.5,0.0,0.0,19.5);
 
         // Initialize AprilTag
         initAprilTag();
@@ -165,10 +178,10 @@ public class DecodeTeleOp extends LinearOpMode {
             }
 
             // Calculate wheel powers
-            double leftFrontPower = (axial + lateral + yaw) / movementSpeedDivisor;
-            double rightFrontPower = (axial - lateral - yaw) / movementSpeedDivisor;
-            double leftBackPower = (axial - lateral + yaw) / movementSpeedDivisor;
-            double rightBackPower = (axial + lateral - yaw) / movementSpeedDivisor;
+            double leftFrontPower = (axial - lateral + yaw) / movementSpeedDivisor;
+            double rightFrontPower = (axial + lateral - yaw) / movementSpeedDivisor;
+            double leftBackPower = (axial + lateral + yaw) / movementSpeedDivisor;
+            double rightBackPower = (axial - lateral - yaw) / movementSpeedDivisor;
 
             // Normalize wheel powers
             double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
@@ -225,12 +238,12 @@ public class DecodeTeleOp extends LinearOpMode {
 
             double triggerValue = gamepad2.right_trigger;
             double targetVelocity = 0;
-            
+            double targetRadPerSec = 0;
             if (triggerValue > 0.1) {
-
+                targetRadPerSec = targetRPM * 2.0 * Math.PI / 60.0;
                 targetVelocity = (launcherRPM / 60.0) * TICKS_PER_REV;
-                launcherRight.setVelocity(targetVelocity);
-                launcherLeft.setVelocity(targetVelocity);
+                launcherRight.setVelocity(targetRadPerSec);
+                launcherLeft.setVelocity(-targetRadPerSec);
             } else {
                 launcherRight.setVelocity(0);
                 launcherLeft.setVelocity(0);
