@@ -1,3 +1,5 @@
+apply plugin: 'com.android.application'
+
 //
 // build.gradle in TeamCode
 //
@@ -8,7 +10,6 @@
 // please think carefully as to whether such customizations are really necessary
 // before doing so.
 
-
 // Custom definitions may go here
 
 // Include common definitions from above.
@@ -18,6 +19,14 @@ apply from: '../build.dependencies.gradle'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
+    // --- ADDED FOR FTCONTROL ---
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+    }
+    // ---------------------------
+
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
@@ -25,4 +34,8 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+
+    // --- ADDED FOR FTCONTROL ---
+    implementation "com.bylazar:ftcontrol:0.6.8"
+    // ---------------------------
 }
