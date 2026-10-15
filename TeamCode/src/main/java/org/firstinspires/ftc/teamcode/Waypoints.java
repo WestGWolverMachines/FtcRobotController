@@ -18,8 +18,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 public class Waypoints extends LinearOpMode {
 
     //pid values
-    private static double Kp_pos = 0.08;
-    private static double Kp_heading = 0.6;
+    public static double Kp_pos = 0.08;
+    public static double Kp_heading = 0.6;
 
     // movement tolerance
     public static double ToleranceInches = 1.0;
@@ -35,7 +35,7 @@ public class Waypoints extends LinearOpMode {
             {24, 24,  90},   // Strafe Left 24 inches, turn 90 degrees
             {0,   0,   0}    // Return to origin (0,0) and face forward
     };
-    private int currentWaypoint = 0;
+    public int currentWaypoint = 0;
 
     private DcMotor lf, lb, rf, rb;
     private GoBildaPinpointDriver odo;
@@ -96,7 +96,12 @@ public class Waypoints extends LinearOpMode {
     }
 
     public void configurePinpoint(){
+
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         /*
+
+
+
          *  Set the odometry pod positions relative to the point that you want the position to be measured from.
          *
          *  The X pod offset refers to how far sideways from the tracking point the X (forward) odometry pod is.
@@ -182,10 +187,10 @@ public class Waypoints extends LinearOpMode {
     }
 
     private void setMotorPowers(double fl, double fr, double bl, double br) {
-        lf.setPower(fl);
-        rf.setPower(fr);
-        lb.setPower(bl);
-        rb.setPower(br);
+        lf.setPower(fl/2);
+        rf.setPower(fr/2);
+        lb.setPower(bl/2);
+        rb.setPower(br/2);
     }
 
     }
