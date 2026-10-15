@@ -19,11 +19,11 @@ public class Waypoints extends LinearOpMode {
 
     //pid values
     public static double Kp_pos = 0.08;
-    public static double Kp_heading = 0.6;
+    public static double Kp_heading = 0.08;
 
     // movement tolerance
     public static double ToleranceInches = 1.0;
-    public static double toleranceDegrees = 2.0;
+    public static double toleranceDegrees = 5.0;
 
     //Odometry hardware position offset
     public static double ODO_X_OFFSET_MM = 0.0;
@@ -32,8 +32,8 @@ public class Waypoints extends LinearOpMode {
     //waypoints to move to
     public static double[][] waypoints = {
             {24,  0,   0},   // Move Forward 24 inches
-            {24, 24,  90},   // Strafe Left 24 inches, turn 90 degrees
-            {0,   0,   0}    // Return to origin (0,0) and face forward
+            {0, 0,  0},   // Strafe Left 24 inches, turn 90 degrees
+            {24,   0,   0}    // Return to origin (0,0) and face forward
     };
     public int currentWaypoint = 0;
 
