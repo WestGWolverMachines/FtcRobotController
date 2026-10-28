@@ -28,14 +28,13 @@ android {
     // ---------------------------
 
     packagingOptions {
+        jniLibs {
+            pickFirsts += ['**/*.so']
+        }
         jniLibs.useLegacyPackaging true
     }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
-
-    // --- ADDED FOR FTCONTROL ---
-    implementation "com.bylazar:ftcontrol:0.6.8"
-    // ---------------------------
 }

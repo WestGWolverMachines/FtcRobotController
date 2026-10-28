@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -45,6 +48,8 @@ public class Waypoints extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+
 
         lf = hardwareMap.get(DcMotor.class, "left_front_drive");
         lb = hardwareMap.get(DcMotor.class, "left_back_drive");
@@ -86,6 +91,7 @@ public class Waypoints extends LinearOpMode {
                 setMotorPowers(0,0,0,0);
                 telemetry.addData("Status", "Path Complete!");
             }
+
             telemetry.addData("Waypoint", currentWaypoint + " / " + waypoints.length);
             telemetry.addData("X", currentpose.getX(DistanceUnit.INCH));
             telemetry.addData("Y", currentpose.getY(DistanceUnit.INCH));
